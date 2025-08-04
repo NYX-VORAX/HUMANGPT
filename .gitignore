@@ -199,3 +199,6 @@ service-account.json
 # Custom
 *.local
 *.secret
+
+# Local Netlify folder
+.netlify
