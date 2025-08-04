@@ -1,20 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/firebase'
-import { getAuth } from 'firebase-admin/auth'
-import { getFirestore } from 'firebase-admin/firestore'
-import { initializeApp, getApps, cert } from 'firebase-admin/app'
+import { adminAuth, adminDb } from '@/lib/firebaseAdmin'
 import { sessionManager } from '@/lib/sessionManager'
-
-// Initialize Firebase Admin SDK
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-    })
-  })
-}
 
 // API keys stored securely on server
 const GEMINI_API_KEYS = [
@@ -381,7 +368,7 @@ export async function POST(request: NextRequest) {
     
     let decodedToken
     try {
-      decodedToken = await getAuth().verifyIdToken(token)
+      decodedToken = await adminAuth.verifyIdToken(token)
     } catch (error) {
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
@@ -426,8 +413,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Verify user permissions
-    const db = getFirestore()
-    const userDoc = await db.collection('users').doc(decodedToken.uid).get()
+    const userDoc = await adminDb.collection('users').doc(decodedToken.uid).get()
     
     if (!userDoc.exists) {
       return NextResponse.json(
@@ -453,13 +439,13 @@ export async function POST(request: NextRequest) {
     
     // If it's a new day, reset daily count
     if (!lastMessageDate || lastMessageDate !== today) {
-      await db.collection('users').doc(decodedToken.uid).update({
+      await adminDb.collection('users').doc(decodedToken.uid).update({
         dailyMessageCount: 0,
         lastMessageDate: new Date()
       })
       
       // Refresh user data after reset
-      const updatedUserDoc = await db.collection('users').doc(decodedToken.uid).get()
+      const updatedUserDoc = await adminDb.collection('users').doc(decodedToken.uid).get()
       if (updatedUserDoc.exists) {
         userData = updatedUserDoc.data()
       }
@@ -513,7 +499,7 @@ export async function POST(request: NextRequest) {
       updateData.dailyMessageCount = (userData?.dailyMessageCount || 0) + 1;
     }
     
-    await db.collection('users').doc(decodedToken.uid).update(updateData)
+    await adminDb.collection('users').doc(decodedToken.uid).update(updateData)
     
     // Log the request for monitoring (without sensitive data)
     console.log(`Chat request from user ${decodedToken.uid} for persona ${persona}`)
