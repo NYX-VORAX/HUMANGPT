@@ -1,18 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
-import { initializeApp, getApps, cert } from 'firebase-admin/app';
-
-// Initialize Firebase Admin SDK
-if (!getApps().length) {
-  initializeApp({
-    credential: cert({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-      clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n')
-    })
-  });
-}
+import { getAdminAuth, getAdminDb } from '@/lib/firebaseAdmin';
 
 const FREE_PLAN_FEATURES = {
   basicPersonas: true,
@@ -129,7 +116,8 @@ export async function GET(request: NextRequest) {
     
     let decodedToken;
     try {
-      decodedToken = await getAuth().verifyIdToken(token);
+      const adminAuth = getAdminAuth();
+      decodedToken = await adminAuth.verifyIdToken(token);
     } catch (error) {
       return NextResponse.json(
         { success: false, error: 'Invalid token' },
@@ -137,8 +125,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const db = getFirestore();
-    const userRef = db.collection('users').doc(decodedToken.uid);
+    const adminDb = getAdminDb();
+    const userRef = adminDb.collection('users').doc(decodedToken.uid);
     const userDoc = await userRef.get();
 
     if (!userDoc.exists) {
@@ -196,7 +184,7 @@ export async function GET(request: NextRequest) {
     const plan = userData.plan || 'free';
     
     // Get active subscription
-    const subscriptionsSnapshot = await db
+    const subscriptionsSnapshot = await adminDb
       .collection('subscriptions')
       .where('uid', '==', decodedToken.uid)
       .where('status', '==', 'active')
@@ -213,7 +201,7 @@ export async function GET(request: NextRequest) {
       
       // If subscription is expired, downgrade user to free plan
       if (subscriptionExpired && plan !== 'free') {
-        const batch = db.batch();
+        const batch = adminDb.batch();
         
         // Update user to free plan
         batch.update(userRef, {
