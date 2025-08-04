@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/firebase'
-import { adminAuth, adminDb } from '@/lib/firebaseAdmin'
+import { getAdminAuth, getAdminDb } from '@/lib/firebaseAdmin'
 import { sessionManager } from '@/lib/sessionManager'
 
 // API keys stored securely on server
@@ -368,6 +368,7 @@ export async function POST(request: NextRequest) {
     
     let decodedToken
     try {
+      const adminAuth = getAdminAuth()
       decodedToken = await adminAuth.verifyIdToken(token)
     } catch (error) {
       return NextResponse.json(
@@ -413,6 +414,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Verify user permissions
+    const adminDb = getAdminDb()
     const userDoc = await adminDb.collection('users').doc(decodedToken.uid).get()
     
     if (!userDoc.exists) {
