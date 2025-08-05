@@ -18,17 +18,34 @@ function getServiceAccountConfig() {
   const clientEmail = process.env.FIREBASE_CLIENT_EMAIL?.trim();
   const privateKey = process.env.FIREBASE_PRIVATE_KEY?.trim();
   
-  // Detailed validation with specific error messages
-  if (!projectId) {
-    throw new Error('FIREBASE_PROJECT_ID environment variable is required but not set');
+  // During build time on Netlify, environment variables might be empty strings
+  // Handle this gracefully by checking for empty strings as well as undefined
+  if (!projectId || projectId === '') {
+    const error = new Error('FIREBASE_PROJECT_ID environment variable is required but not set');
+    // During build, log warning but don't throw
+    if (process.env.NETLIFY === 'true' && process.env.NODE_ENV !== 'production') {
+      console.warn('⚠️ Firebase config missing during build:', error.message);
+      return null;
+    }
+    throw error;
   }
   
-  if (!clientEmail) {
-    throw new Error('FIREBASE_CLIENT_EMAIL environment variable is required but not set');
+  if (!clientEmail || clientEmail === '') {
+    const error = new Error('FIREBASE_CLIENT_EMAIL environment variable is required but not set');
+    if (process.env.NETLIFY === 'true' && process.env.NODE_ENV !== 'production') {
+      console.warn('⚠️ Firebase config missing during build:', error.message);
+      return null;
+    }
+    throw error;
   }
   
-  if (!privateKey) {
-    throw new Error('FIREBASE_PRIVATE_KEY environment variable is required but not set');
+  if (!privateKey || privateKey === '') {
+    const error = new Error('FIREBASE_PRIVATE_KEY environment variable is required but not set');
+    if (process.env.NETLIFY === 'true' && process.env.NODE_ENV !== 'production') {
+      console.warn('⚠️ Firebase config missing during build:', error.message);
+      return null;
+    }
+    throw error;
   }
   
   // Validate email format
@@ -77,6 +94,12 @@ function initializeFirebaseAdmin(): App | null {
   try {
     // Get service account configuration
     const serviceAccountConfig = getServiceAccountConfig();
+    
+    // If config is null (during build), return null gracefully
+    if (!serviceAccountConfig) {
+      console.log('⚠️ Firebase configuration not available, skipping initialization');
+      return null;
+    }
     
     console.log('Initializing Firebase Admin SDK for project:', serviceAccountConfig.projectId);
     

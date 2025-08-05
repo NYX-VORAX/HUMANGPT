@@ -1,15 +1,15 @@
 [build]
-  command = "npm ci && npm run build"
-  # Change from 'out' to '.next' for dynamic Next.js apps with API routes
-  publish = ".next"
+  command = "npm ci && npm run build:debug"
+  # For Next.js with Netlify plugin, let the plugin handle the publish directory
+  # publish = "."  # Comment out to let @netlify/plugin-nextjs handle this
 
 [build.environment]
   NODE_VERSION = "18"
-  NODE_ENV = "production"
   NEXT_TELEMETRY_DISABLED = "1"
-  # Remove export-related environment variables for dynamic rendering
-  # NEXT_PRIVATE_TARGET = "export"  # Removed
-  # NEXT_EXPORT = "true"  # Removed
+  # Set Netlify flag for conditional logic
+  NETLIFY = "true"
+  # Add npm config for better compatibility
+  NPM_CONFIG_LEGACY_PEER_DEPS = "true"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
