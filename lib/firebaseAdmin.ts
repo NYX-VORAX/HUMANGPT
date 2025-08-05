@@ -86,6 +86,9 @@ function initializeFirebaseAdmin(): App | null {
 export function getAdminAuth(): Auth {
   if (!adminAuth) {
     const app = initializeFirebaseAdmin();
+    if (!app) {
+      throw new Error('Firebase Admin SDK failed to initialize. Cannot get Auth instance.');
+    }
     adminAuth = getAuth(app);
   }
   return adminAuth;
@@ -94,6 +97,9 @@ export function getAdminAuth(): Auth {
 export function getAdminDb(): Firestore {
   if (!adminDb) {
     const app = initializeFirebaseAdmin();
+    if (!app) {
+      throw new Error('Firebase Admin SDK failed to initialize. Cannot get Firestore instance.');
+    }
     adminDb = getFirestore(app);
   }
   return adminDb;
