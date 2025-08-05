@@ -13,14 +13,8 @@
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-  
-  [plugins.inputs]
-    # Enable dynamic features for Next.js 15
-    nextRuntime = "nodejs18.x"
-    # Keep image optimization enabled for dynamic apps
-    disable_image_optimization = false
-    # Enable server-side rendering and API routes
-    target = "server"
+  # Note: @netlify/plugin-nextjs v5.12.0 does not accept any input parameters
+  # The plugin automatically detects and configures Next.js settings
 
 [[redirects]]
   from = "/*"
