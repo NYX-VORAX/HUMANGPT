@@ -88,8 +88,32 @@ criticalFiles.forEach(file => {
 // Test Firebase Admin import
 console.log('\n🧪 Firebase Admin Test:');
 try {
-  const firebaseAdmin = require('../lib/firebaseAdmin');
-  console.log('✅ Firebase Admin module loads successfully');
+  // Try different possible paths for the Firebase Admin module
+  let firebaseAdmin;
+  const possiblePaths = [
+    '../lib/firebaseAdmin',
+    '../lib/firebaseAdmin.ts',
+    './lib/firebaseAdmin',
+    './lib/firebaseAdmin.ts',
+    process.cwd() + '/lib/firebaseAdmin.ts',
+    process.cwd() + '/lib/firebaseAdmin.js'
+  ];
+  
+  let moduleLoaded = false;
+  for (const modulePath of possiblePaths) {
+    try {
+      firebaseAdmin = require(modulePath);
+      console.log(`✅ Firebase Admin module loaded from: ${modulePath}`);
+      moduleLoaded = true;
+      break;
+    } catch (err) {
+      // Continue trying other paths
+    }
+  }
+  
+  if (!moduleLoaded) {
+    throw new Error('Could not find Firebase Admin module in any expected location');
+  }
   
   // Test configuration without initializing
   if (firebaseProjectId && firebaseClientEmail && firebasePrivateKey) {
@@ -99,6 +123,24 @@ try {
   }
 } catch (error) {
   console.log('❌ Firebase Admin module failed to load:', error.message);
+  
+  // Additional file system check for troubleshooting
+  const fs = require('fs');
+  const path = require('path');
+  
+  console.log('\n🔍 Troubleshooting file paths:');
+  const libDir = path.join(process.cwd(), 'lib');
+  
+  if (fs.existsSync(libDir)) {
+    console.log('✅ lib directory exists');
+    const files = fs.readdirSync(libDir);
+    console.log('📁 Files in lib directory:', files.join(', '));
+  } else {
+    console.log('❌ lib directory does not exist');
+  }
+  
+  console.log('📍 Current working directory:', process.cwd());
+  console.log('📍 Script location:', __dirname);
 }
 
 console.log('\n🏁 Debug Build Script Completed');
