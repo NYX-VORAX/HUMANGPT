@@ -1,6 +1,50 @@
 [build]
-  command = "npm run build"
-  publish = ".next"
+  # Use npm ci for faster, more reliable builds in CI/CD
+  command = "npm ci && npm run build"
+  # Next.js 15 outputs to .next by default, but Netlify needs the static export
+  publish = "out"
+  # Set Node.js version for compatibility with Next.js 15
+  environment = { NODE_VERSION = "18" }
 
+# Environment variables for build process
+[build.environment]
+  # Ensure Next.js builds for production
+  NODE_ENV = "production"
+  # Disable Next.js telemetry in CI
+  NEXT_TELEMETRY_DISABLED = "1"
+  # Enable static export for Netlify compatibility
+  NEXT_EXPORT = "true"
+
+# Configure the Next.js plugin with proper settings
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+  
+  [plugins.inputs]
+    # Enable experimental features for Next.js 15
+    nextRuntime = "experimental-edge"
+    # Disable image optimization for static export
+    disable_image_optimization = true
+
+# Redirect rules for SPA behavior
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  # Don't apply to API routes or static assets
+  conditions = {Role = ["!api"], "!Path=/api/*,/_next/*,/favicon.ico,/robots.txt,/sitemap.xml"}
+
+# API route handling (if you want to keep server functions)
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Security headers (complement your middleware)
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"

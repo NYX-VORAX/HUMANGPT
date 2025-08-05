@@ -1,5 +1,15 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Enable static export for Netlify deployment
+  output: process.env.NEXT_EXPORT === 'true' ? 'export' : undefined,
+  // Disable image optimization for static export
+  images: {
+    unoptimized: process.env.NEXT_EXPORT === 'true',
+    domains: [],
+    dangerouslyAllowSVG: false,
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
+  },
+  
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? true : false,
   },
@@ -128,12 +138,6 @@ const nextConfig = {
         permanent: false,
       },
     ]
-  },
-  
-  images: {
-    domains: [],
-    dangerouslyAllowSVG: false,
-    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 }
 
