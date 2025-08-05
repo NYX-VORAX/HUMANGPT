@@ -12,10 +12,6 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-  [plugins.inputs]
-    nextRuntime = "experimental-edge"
-    disable_image_optimization = true
-    
 [[redirects]]
   from = "/*"
   to = "/index.html"

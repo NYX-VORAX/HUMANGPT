@@ -24,6 +24,7 @@ const nextConfig = {
   },
   
   webpack: (config, { isServer }) => {
+    // Client-side polyfills and fallbacks
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -35,15 +36,41 @@ const nextConfig = {
         stream: false,
         path: false,
         os: false,
+        // Additional fallbacks for Firebase Admin SDK
+        dns: false,
+        http2: false,
+        module: false,
       }
     }
 
+    // Optimize client-side bundles
     if (!isServer) {
       config.optimization.splitChunks.chunks = 'all';
+      
+      // Exclude server-only packages from client bundle
+      config.externals = config.externals || [];
+      config.externals.push('firebase-admin');
     }
 
+    // Server-side optimizations
+    if (isServer) {
+      // Mark firebase-admin as external to prevent bundling issues
+      config.externals = config.externals || [];
+      if (Array.isArray(config.externals)) {
+        config.externals.push('firebase-admin');
+      }
+    }
+
+    // Production optimizations
     if (process.env.NODE_ENV === 'production') {
       config.devtool = false;
+      
+      // Additional production optimizations
+      config.optimization = {
+        ...config.optimization,
+        usedExports: true,
+        sideEffects: false,
+      };
     }
 
     return config;
