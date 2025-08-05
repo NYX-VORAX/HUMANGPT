@@ -1,13 +1,13 @@
 [build]
   command = "npm ci && npm run build"
   publish = "out"
-  environment = { 
-    NODE_VERSION = "18", 
-    NODE_ENV = "production", 
-    NEXT_TELEMETRY_DISABLED = "1", 
-    NEXT_PRIVATE_TARGET = "export", 
-    NEXT_EXPORT = "true" 
-  }
+
+[build.environment]
+  NODE_VERSION = "18"
+  NODE_ENV = "production"
+  NEXT_TELEMETRY_DISABLED = "1"
+  NEXT_PRIVATE_TARGET = "export"
+  NEXT_EXPORT = "true"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
@@ -15,22 +15,20 @@
   [plugins.inputs]
     nextRuntime = "experimental-edge"
     disable_image_optimization = true
-
-# Redirect all requests to index.html, except for known static & API paths
+    
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
   force = true
-  conditions = { Role = ["!api"], "!Path" = ["/api/*", "/_next/*", "/favicon.ico", "/robots.txt", "/sitemap.xml"] }
+  conditions = { "!Path" = ["/api/*", "/_next/*", "/favicon.ico", "/robots.txt", "/sitemap.xml"] }
 
-# Route all /api/* requests to Netlify functions (needed for dynamic API)
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
+  force = true
 
-# Security headers for all pages
 [[headers]]
   for = "/*"
   [headers.values]
