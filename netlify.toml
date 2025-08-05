@@ -1,36 +1,36 @@
 [build]
-  # Use npm ci for faster, more reliable builds in CI/CD
   command = "npm ci && npm run build"
-  # Next.js 15 outputs to .next by default, but Netlify needs the static export
   publish = "out"
-  # Set Node.js version and other environment variables
-  environment = { NODE_VERSION = "18", NODE_ENV = "production", NEXT_TELEMETRY_DISABLED = "1", NEXT_EXPORT = "true" }
+  environment = { 
+    NODE_VERSION = "18", 
+    NODE_ENV = "production", 
+    NEXT_TELEMETRY_DISABLED = "1", 
+    NEXT_PRIVATE_TARGET = "export", 
+    NEXT_EXPORT = "true" 
+  }
 
-# Configure the Next.js plugin with proper settings
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-  
+
   [plugins.inputs]
-    # Enable experimental features for Next.js 15
     nextRuntime = "experimental-edge"
-    # Disable image optimization for static export
     disable_image_optimization = true
 
-# Redirect rules for SPA behavior
+# Redirect all requests to index.html, except for known static & API paths
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  # Don't apply to API routes or static assets
-  conditions = {Role = ["!api"], "!Path=/api/*,/_next/*,/favicon.ico,/robots.txt,/sitemap.xml"}
+  force = true
+  conditions = { Role = ["!api"], "!Path" = ["/api/*", "/_next/*", "/favicon.ico", "/robots.txt", "/sitemap.xml"] }
 
-# API route handling (if you want to keep server functions)
+# Route all /api/* requests to Netlify functions (needed for dynamic API)
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/:splat"
   status = 200
 
-# Security headers (complement your middleware)
+# Security headers for all pages
 [[headers]]
   for = "/*"
   [headers.values]
