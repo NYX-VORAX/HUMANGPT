@@ -1,10 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Enable static export for Netlify deployment
-  output: process.env.NEXT_EXPORT === 'true' ? 'export' : undefined,
-  // Disable image optimization for static export
+  // Dynamic rendering for Netlify with API routes support
+  // Note: No 'output: export' - we need dynamic rendering for API routes
+  
+  // Image configuration for dynamic Next.js app
   images: {
-    unoptimized: process.env.NEXT_EXPORT === 'true',
     domains: [],
     dangerouslyAllowSVG: false,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",

@@ -1,16 +1,26 @@
 [build]
   command = "npm ci && npm run build"
-  publish = "out"
+  # Change from 'out' to '.next' for dynamic Next.js apps with API routes
+  publish = ".next"
 
 [build.environment]
   NODE_VERSION = "18"
   NODE_ENV = "production"
   NEXT_TELEMETRY_DISABLED = "1"
-  NEXT_PRIVATE_TARGET = "export"
-  NEXT_EXPORT = "true"
+  # Remove export-related environment variables for dynamic rendering
+  # NEXT_PRIVATE_TARGET = "export"  # Removed
+  # NEXT_EXPORT = "true"  # Removed
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+  
+  [plugins.inputs]
+    # Enable dynamic features for Next.js 15
+    nextRuntime = "nodejs18.x"
+    # Keep image optimization enabled for dynamic apps
+    disable_image_optimization = false
+    # Enable server-side rendering and API routes
+    target = "server"
 
 [[redirects]]
   from = "/*"
